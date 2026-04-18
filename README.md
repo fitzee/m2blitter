@@ -42,7 +42,6 @@ src/Blitter.def    - Blitter interface (minterm constants, procedure signatures)
 src/Blitter.mod    - Blitter implementation
 src/BlitMask.def   - 1-bit mask interface
 src/BlitMask.mod   - 1-bit mask implementation
-src/Blitter.c      - Generated C output from mx compiler (do not edit)
 m2.toml            - Project configuration
 ```
 
