@@ -1,0 +1,42 @@
+DEFINITION MODULE BlitMask;
+
+(* 1-bit mask operations for the Amiga Blitter emulation.
+   Masks are packed bit arrays, MSB-first, byte-aligned rows. *)
+
+FROM SYSTEM IMPORT ADDRESS;
+FROM PixBuf IMPORT PBuf;
+
+TYPE
+  Mask = RECORD
+    bits:   ADDRESS;
+    w, h:   INTEGER;
+    stride: INTEGER   (* bytes per row = (w + 7) DIV 8 *)
+  END;
+
+PROCEDURE Create(w, h: INTEGER; VAR m: Mask);
+PROCEDURE Free(VAR m: Mask);
+PROCEDURE Clear(VAR m: Mask);
+PROCEDURE Fill(VAR m: Mask);
+
+PROCEDURE SetBit(VAR m: Mask; x, y: INTEGER);
+PROCEDURE ClearBit(VAR m: Mask; x, y: INTEGER);
+PROCEDURE TestBit(VAR m: Mask; x, y: INTEGER): BOOLEAN;
+
+(* Generate mask from PixBuf: bit SET where pixel != transIdx *)
+PROCEDURE FromPixBuf(pb: PBuf; x, y, w, h: INTEGER;
+                     transIdx: INTEGER; VAR m: Mask);
+
+(* Load mask from raw 1-bit data (e.g. shadow_mem).
+   data: pointer to packed bits. frameW, frameH: frame dimensions.
+   frameIdx: which frame to extract (offset = frameIdx * frameH * stride). *)
+PROCEDURE FromRaw(data: ADDRESS; frameW, frameH, frameIdx: INTEGER;
+                  VAR m: Mask);
+
+(* Boolean combinations *)
+PROCEDURE CombineAnd(VAR dst, src: Mask;
+                     dx, dy, sx, sy, w, h: INTEGER);
+PROCEDURE CombineOr(VAR dst, src: Mask;
+                    dx, dy, sx, sy, w, h: INTEGER);
+PROCEDURE Invert(VAR m: Mask; x, y, w, h: INTEGER);
+
+END BlitMask.

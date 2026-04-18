@@ -1,0 +1,23 @@
+# Generated C output from mx compiler
+src/Blitter.c
+
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Environment
+.env

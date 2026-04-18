@@ -1,0 +1,77 @@
+DEFINITION MODULE Blitter;
+
+(* Software Amiga Blitter emulation.
+   Operates on m2gfx PixBuf (8-bit indexed color).
+   Minterms applied bitwise across all 8 bits of each pixel. *)
+
+FROM SYSTEM IMPORT ADDRESS;
+FROM PixBuf IMPORT PBuf;
+
+CONST
+  (* Common minterm values *)
+  MtClear    = 0;       (* D = 0                                    *)
+  MtMaskAnd  = 80;      (* D = A AND C          (0x50)              *)
+  MtMasked   = 202;     (* D = (A AND B) OR (NOT A AND C)  (0xCA)   *)
+  MtCopy     = 204;     (* D = B                (0xCC)              *)
+  MtCopyA    = 240;     (* D = A                (0xF0)              *)
+
+(* Generic blit with minterm.
+   srcA, srcB: source PixBufs (or NIL = all zeros).
+   dst: destination (also used as C for read-modify-write).
+   Minterm truth table applied bitwise per pixel. *)
+PROCEDURE BlitOp(srcA, srcB, dst: PBuf;
+                 ax, ay, bx, by, dx, dy, w, h: INTEGER;
+                 minterm: INTEGER);
+
+(* Masked blit: A channel is a 1-bit packed mask.
+   maskA: pointer to packed bits (MSB first).
+   maskStride: bytes per row in mask.
+   Each mask bit expands to 0xFF (set) or 0x00 (clear). *)
+PROCEDURE BlitOpMask(maskA: ADDRESS; maskStride: INTEGER;
+                     srcB, dst: PBuf;
+                     mx, my, bx, by, dx, dy, w, h: INTEGER;
+                     minterm: INTEGER);
+
+(* === Convenience procedures === *)
+
+(* Draw sprite through 1-bit mask onto dst. Minterm 0xCA. *)
+PROCEDURE MaskedBlit(maskA: ADDRESS; maskStride: INTEGER;
+                     sprite, dst: PBuf;
+                     mx, my, sx, sy, dx, dy, w, h: INTEGER);
+
+(* Copy rectangle from src to dst. Minterm 0xCC. *)
+PROCEDURE CopyBlit(src, dst: PBuf;
+                   sx, sy, dx, dy, w, h: INTEGER);
+
+(* Copy src to dst, skip pixels matching transIdx. *)
+PROCEDURE TransparentBlit(src, dst: PBuf;
+                          sx, sy, dx, dy, w, h: INTEGER;
+                          transIdx: INTEGER);
+
+(* Clear rectangle to zero. *)
+PROCEDURE ClearRect(dst: PBuf; x, y, w, h: INTEGER);
+
+(* Composite foreground onto background.
+   Where fg pixel != 0, write fg to dst. Otherwise keep dst. *)
+PROCEDURE OverlayBlit(fg, dst: PBuf;
+                      sx, sy, dx, dy, w, h: INTEGER);
+
+(* Shadow-masked overlay: copy src to dst where mask PixBuf pixel != 0.
+   mask is an 8-bit PixBuf (e.g. shadow_mem) used as per-pixel mask.
+   maskX/maskY = origin in the mask PixBuf. *)
+PROCEDURE ShadowBlit(src: PBuf; mask: PBuf;
+                     sx, sy: INTEGER;
+                     maskX, maskY: INTEGER;
+                     dst: PBuf;
+                     dx, dy, w, h: INTEGER);
+
+(* Shadow-masked overlay writing RGBA directly to dst's rgba buffer.
+   Reads indexed pixels from src, looks up RGB from src's palette,
+   writes RGBA to dst. Avoids palette mismatch between PixBufs. *)
+PROCEDURE ShadowBlitRGBA(src: PBuf; mask: PBuf;
+                         sx, sy: INTEGER;
+                         maskX, maskY: INTEGER;
+                         dst: PBuf;
+                         dx, dy, w, h: INTEGER);
+
+END Blitter.

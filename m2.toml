@@ -1,0 +1,10 @@
+name=m2blitter
+version=0.1.0
+edition=pim4
+entry=src/Blitter.mod
+includes=src
+
+[deps]
+m2gfx
+
+[cc]
